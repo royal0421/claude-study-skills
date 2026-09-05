@@ -1,0 +1,183 @@
+/* ============================================================
+   buck-slides.css
+   用途：skill `handout-to-study` 產出的講義筆記通用版面。
+      cssclasses：逐頁講解＝buck-slides、重點複習＝buck-review。
+      （名稱裡的 buck 是歷史命名，本檔適用於任何課程的講義筆記。）
+   安裝：複製到你的 Obsidian vault 的 .obsidian/snippets/ 底下，
+      再到「設定 → 外觀 → CSS 程式片段」開啟。
+   - 投影片兩頁並排（強制左右各半，單頁時右半留空但尺寸不變）
+   - 內容表格保留格線
+   - mermaid 圖自動縮進「一個畫面」（同時限制寬與高）
+   套用方式：筆記 frontmatter 寫 cssclasses: [buck-slides] 或 [buck-review]
+   建立：2026-07-25　｜　修訂：2026-07-30（新增「左圖右說明文字」的文字欄靠左對齊規則）
+   ============================================================ */
+
+/* ============================================================
+   一、內容表格：保留格線（預設規則，兩份筆記都套用）
+   ============================================================ */
+
+.buck-slides table,
+.buck-review table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.7em 0;
+}
+
+.buck-slides table th,
+.buck-slides table td,
+.buck-review table th,
+.buck-review table td {
+  border: 1px solid var(--background-modifier-border);
+  padding: 6px 10px;
+  vertical-align: top;
+}
+
+.buck-slides table th,
+.buck-review table th {
+  background: var(--background-secondary);
+  font-weight: 600;
+}
+
+/* 斑馬紋，長表格較好讀 */
+.buck-slides table tbody tr:nth-child(even),
+.buck-review table tbody tr:nth-child(even) {
+  background: var(--background-primary-alt);
+}
+
+/* ============================================================
+   二、投影片並排表格：只針對「儲存格裡有圖片」的表格
+   （用 :has() 挑出來，才不會影響上面那些內容表格）
+   ============================================================ */
+
+/* table-layout: fixed 是關鍵：欄寬不受內容影響，
+   所以單獨一頁時右欄雖然空著，左圖仍維持一半寬度 */
+.buck-slides table:has(img) {
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 6px;
+  width: 100%;
+}
+
+.buck-slides table:has(img) th,
+.buck-slides table:has(img) td {
+  width: 50%;
+  border: none;
+  text-align: center;
+  vertical-align: top;
+  padding: 4px;
+  background: transparent;
+}
+
+/* 並排表格不要斑馬紋 */
+.buck-slides table:has(img) tbody tr {
+  background: transparent !important;
+}
+
+/* 表頭＝頁碼與投影片標題 */
+.buck-slides table:has(img) th {
+  font-size: 0.85em;
+  font-weight: 600;
+  background: var(--background-secondary);
+  border-radius: 4px 4px 0 0;
+  padding: 5px 4px;
+  line-height: 1.35;
+}
+
+/* 空白欄維持透明 */
+.buck-slides table:has(img) th:empty,
+.buck-slides table:has(img) td:empty {
+  background: transparent;
+}
+
+/* 投影片圖：填滿欄寬、等比縮放、加一圈細框 */
+.buck-slides table:has(img) img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 3px;
+}
+
+/* 圖文並排：同一列「左圖、右說明文字」時，
+   沒有圖片的那格改靠左對齊並放寬行距。
+   Ch2/Ch3 逐頁講解那種「左右兩格都是圖」的表格完全不受影響。 */
+.buck-slides table:has(img) td:not(:has(img)) {
+  text-align: left;
+  line-height: 1.65;
+  font-size: 0.92em;
+  padding: 4px 10px;
+}
+
+/* ============================================================
+   三、mermaid：一個畫面就要看完
+   同時限制寬度與高度，SVG 會等比縮到兩者都滿足為止
+   ============================================================ */
+
+.buck-slides .mermaid,
+.buck-review .mermaid {
+  max-width: 100%;
+  overflow: visible;
+  text-align: center;
+  margin: 0.8em 0;
+}
+
+.buck-slides .mermaid svg,
+.buck-review .mermaid svg {
+  max-width: 100% !important;
+  max-height: 68vh !important;   /* 不超過視窗高度的 68%，留空間給前後文字 */
+  width: auto !important;
+  height: auto !important;
+  display: inline-block;
+}
+
+/* ============================================================
+   四、閱讀寬度：並排投影片需要較寬版面
+   ============================================================ */
+
+.buck-slides.markdown-preview-view,
+.buck-slides .markdown-preview-sizer,
+.buck-slides .cm-sizer {
+  max-width: 100% !important;
+}
+
+/* ============================================================
+   五、自測題 callout：拿掉問號圖示、改掉預設橘色
+   （13 題自測題用 > [!question]- 寫成，語意保留，只改外觀）
+   ============================================================ */
+
+/* --- 換色 ---
+   --callout-color 吃的是「RGB 三個數字」，不要寫 rgb() 也不要寫 #色碼。
+   想換色就改下面這一行，幾個備選：
+     藍  68, 138, 255      灰藍 100, 116, 139
+     綠  76, 175, 80       紫   156, 39, 176
+     灰  128, 128, 128     青   0, 150, 136                              */
+.buck-review .callout[data-callout="question"] {
+  --callout-color: 100, 116, 139;   /* 灰藍，低調不搶眼 */
+}
+
+/* --- 標題文字改回一般文字色（Obsidian 預設會把標題染成 callout 色） ---
+   用 var(--text-normal) 而不是寫死 #000：淺色主題下就是黑字，
+   若哪天切到深色主題會自動變淺色，不會變成黑底黑字看不見。
+   最後兩條是保險：標題列裡的 LaTeX 公式也一起吃這個顏色。            */
+.buck-review .callout[data-callout="question"] .callout-title,
+.buck-review .callout[data-callout="question"] .callout-title-inner,
+.buck-review .callout[data-callout="question"] .callout-title .math,
+.buck-review .callout[data-callout="question"] .callout-title .katex {
+  color: var(--text-normal);
+}
+
+/* --- 拿掉標題左邊的問號圖示 --- */
+.buck-review .callout[data-callout="question"] .callout-icon {
+  display: none;
+}
+
+/* 圖示移除後，補掉它原本佔的間距，讓題號貼齊左緣 */
+.buck-review .callout[data-callout="question"] .callout-title {
+  gap: 0;
+  padding-left: 0;
+}
+
+/* 摺疊箭頭保留（要靠它才知道可以點開），只是不要離標題太遠 */
+.buck-review .callout[data-callout="question"] .callout-fold {
+  margin-left: 0.4em;
+}
