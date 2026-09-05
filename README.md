@@ -66,6 +66,26 @@
 
 所以 SKILL.md 都很長。那是刻意的：規則寫得夠死，弱模型才不會自由發揮。
 
+## 維護：同步本機版本（給作者）
+
+本機開發版與這個公開版是兩份分開的副本。改完本機版後：
+
+```
+python tools/sync.py       # 從本機 .my-skills 同步 + 去個人化 + 檢查
+git add -A && git commit -m "..." && git push
+```
+
+`tools/sync.py` 會做四件事：
+
+1. 把個人路徑換成佔位符
+2. 排除不公開的檔案（`slides.pptx`）
+3. 重新套上「公開版專屬修改」（`PUBLIC_PATCHES`）——同步是覆蓋式的，這些差異每次都要重貼
+4. 掃描殘留個資，**有殘留就 exit 1**（別在紅燈時 push）
+
+只想檢查不寫檔：`python tools/sync.py --check`。
+
+若印出 `[PATCH-MISS]`，代表源版改寫過被 patch 的那一段 → 回去更新 `PUBLIC_PATCHES` 再跑。
+
 ## 授權
 
 MIT，見 `LICENSE`。
