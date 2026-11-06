@@ -16,7 +16,20 @@
 
 **最快的方式**：把這個 repo 的連結貼給 Claude Code，說「照 README 幫我安裝或更新」。
 
-Claude Code 請照下面做：
+Claude Code 請先判斷是哪一種安裝：
+
+### A. 環境包版（`~/.claude/kit-venv` 存在）
+
+這是針對 macOS 改過的版本，**不要跑下方 B 的 plugin 指令，也不要移除 `~/.claude/skills/` 裡的任何資料夾**。只補上翻譯檔嵌圖，在終端機執行：
+
+```
+curl -fsSL https://raw.githubusercontent.com/royal0421/claude-study-skills/main/tools/update_env_kit.py -o /tmp/update_env_kit.py
+~/.claude/kit-venv/bin/python /tmp/update_env_kit.py
+```
+
+印出 `[DONE]` 或 `[OK]` 就完成，重開視窗，路徑不用重換。印出 `[ABORT]` 代表沒有改動，把訊息回報給使用者。
+
+### B. 一般安裝（其他情況）
 
 1. 檢查 `~/.claude/skills/` 底下有沒有手動複製的同名資料夾（`paper-to-study`、`paper-to-review`、`paper-to-ppt`、`book-to-study`、`handout-to-study`）。有的話，手動版會和 plugin 版重複，先問使用者要不要移除，不要自己刪。
 2. 在終端機依序執行：
@@ -59,6 +72,12 @@ claude plugin update study-skills@claude-study-skills
 ### handout-to-study 的版面 CSS
 
 `skills/handout-to-study/buck-slides.css` 要複製到 `<VAULT_ROOT>/.obsidian/snippets/`，再到「設定 → 外觀 → CSS 程式片段」開啟 `buck-slides`。**沒開的話投影片會變成上下排列、心智圖會超出畫面。**
+
+### 在 macOS 上用一般安裝
+
+- SKILL.md 的 `python` 換成 `python3`，`Test-Path <路徑>` 換成 `[ -e "<路徑>" ] && echo yes`，反斜線路徑換成斜線。
+- 缺套件用 `python3 -m pip install --user --break-system-packages <套件>`。
+- paper-to-study 的 IEEE 網頁存檔要用 Chrome 或 Brave 按 `⌘S`，格式選「網頁，完整」；Safari 存不出 `_files` 資料夾。
 
 ## 已知限制
 
