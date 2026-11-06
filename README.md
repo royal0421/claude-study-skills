@@ -12,23 +12,26 @@
 
 每個 skill 都寫成「**執行者只讀得到這一份檔案**」的規格：逐 Phase 的機械判準、腳本合約（CLI 簽名／輸出檔名／哨兵字串／exit code／覆寫行為）、失敗路徑、最終驗收清單。
 
-## 安裝
+## 安裝或更新
+
+**最快的方式**：把這個 repo 的連結貼給 Claude Code，說「照 README 幫我安裝或更新」。
+
+Claude Code 請照下面做：
+
+1. 檢查 `~/.claude/skills/` 底下有沒有手動複製的同名資料夾（`paper-to-study`、`paper-to-review`、`paper-to-ppt`、`book-to-study`、`handout-to-study`）。有的話，手動版會和 plugin 版重複，先問使用者要不要移除，不要自己刪。
+2. 在終端機依序執行：
 
 ```
-/plugin marketplace add <你的GitHub帳號>/claude-study-skills
-/plugin install study-skills@claude-study-skills
+claude plugin marketplace add royal0421/claude-study-skills
+claude plugin marketplace update claude-study-skills
+claude plugin install study-skills@claude-study-skills
+claude plugin update study-skills@claude-study-skills
 ```
 
-裝完在新視窗打 `/skills` 應該看得到五個。
+已經裝過時，第一行或第三行可能回報已存在，繼續跑下一行即可。
 
-### 更新到新版
-
-```
-/plugin marketplace update claude-study-skills
-/plugin update study-skills@claude-study-skills
-```
-
-更新後重開視窗。更新會蓋掉已安裝的檔案，下一節的路徑佔位符要重換一次。
+3. 請使用者重開視窗，打 `/skills` 應該看得到五個。
+4. 更新會蓋掉已安裝的檔案，下一節的路徑佔位符要重換一次。
 
 ## 使用前必改：路徑佔位符
 
