@@ -195,9 +195,19 @@ print(f"IEEE refs: {len(ieee_refs)}, 已有: {sorted(existing)}, 待下載: {[r[
 
 若 `to_download` 為空 → **跳過 0e–0h，直接進 Phase 1**（Reference/ 已齊）。
 
-### 0e. WebSearch 找「待下載」各篇的 IEEE Xplore URL
+### 0e. 找「待下載」各篇的 IEEE Xplore URL
 
-對 `to_download` 每篇查 IEEE Xplore URL。**派工判準**：待查 >2 筆 → 派 1 個 general-purpose subagent（model: sonnet）批次查，主對話只收「ref → URL／未找到」清單（dispatch.md §1：查網頁派工）；≤2 筆 → 主對話直接發 WebSearch（每篇至多 2 種查法、合計 ≤4 次呼叫，符合 ≤5 次例外）。每篇查法：
+**第一順位：Crossref 腳本（2026-10-15 實測：WebSearch 0/10、本法 7/10，約 20 秒）**。WebSearch 幾乎不收錄 ieeexplore 頁面；Xplore 自己的 `/rest/search` 會擋 headless 瀏覽器。改由 Crossref 依標題查 DOI（只限 IEEE 前綴 `10.1109`、標題須完全吻合），再讓 doi.org 轉址解出文件編號：
+
+```bash
+# 先把 to_download 寫成 Claude\refs_to_find.json：[{"ref":"1","title":"..."}, ...]
+python "<SKILLS_ROOT>\paper-to-study\crossref_ieee_urls.py" "<pdf同層>\Claude\refs_to_find.json" "<pdf同層>\Claude\ieee_papers.json"
+```
+
+- 輸出直接就是 0f 的 `ieee_papers.json`（只含 HIT），**跑完可跳過 0f**。每篇印 `HIT`／`MISS`／`NOURL`，結尾 `written N`。
+- `MISS` 常見於 EOS/ESD 早期或部分年份（Xplore 未收）、標題與 Crossref 紀錄有出入。對 MISS 的才進入下方 WebSearch 退路；仍找不到就記「未找到」。
+
+**退路：WebSearch**（僅對 Crossref MISS 者）。**派工判準**：待查 >2 筆 → 派 1 個 general-purpose subagent（model: sonnet）批次查，主對話只收「ref → URL／未找到」清單；≤2 筆 → 主對話直接發 WebSearch（每篇至多 2 種查法、合計 ≤4 次呼叫，符合 ≤5 次例外）。每篇查法：
 1. `"<標題前6字>" site:ieeexplore.ieee.org`
 2. 退路：`<第一作者姓> "<標題關鍵詞>" IEEE Xplore site:ieeexplore.ieee.org`
 
@@ -382,7 +392,7 @@ has_refs = bool(ref_pdfs)
 print(f"Reference PDFs: {len(ref_pdfs)} (folder={ref_folder})")
 ```
 
-- 若 `has_refs = True`：Phase 2「與其他工作的關係」啟用完整分析模式。**Reference PDF 一律不進主對話**（CLAUDE.md 鐵律 6）：派 1 個 general-purpose subagent（model: sonnet）批次讀 `Reference/` 全部 PDF，每篇回報「標題｜作者/年份｜一句話貢獻｜與本論文的關係線索」，主對話只拿這張表填模板
+- 若 `has_refs = True`：Phase 2「與其他工作的關係」啟用完整分析模式。**Reference PDF 一律不進主對話**：派 1 個 general-purpose subagent（model: sonnet）批次讀 `Reference/` 全部 PDF，每篇回報「標題｜作者/年份｜一句話貢獻｜與本論文的關係線索」，主對話只拿這張表填模板
 - 若 `has_refs = False`：該區塊僅根據論文內文的 Reference list 填寫標題/年份，說明欄標記「未提供 PDF」
 
 **Phase 1 自查點**：輸入＝PDF（＋選用 Claude/ 內 HTML）。輸出＝`Claude/_extracted.txt`、schema、`Claude/img/`＋figures.json＋coverage.json、has_refs 判定。檢查＝_extracted.txt 非空；per_fig 每個 Fig 已對應影像（1c 必做項）；schema 的 title/doi 至少一項非「待補」。
@@ -606,7 +616,7 @@ flowchart LR
 
 #### 各 Reference 簡介
 
-[若 has_refs = True：把 Phase 1d 派出的 subagent 回報表填入下表（Reference PDF 由 subagent 消化，不進主對話——CLAUDE.md 鐵律 6）；Reference/ 中沒有對應 PDF 的引用，說明欄末尾加註「(推斷)」]
+[若 has_refs = True：把 Phase 1d 派出的 subagent 回報表填入下表（Reference PDF 由 subagent 消化，不進主對話）；Reference/ 中沒有對應 PDF 的引用，說明欄末尾加註「(推斷)」]
 [若 has_refs = False：根據論文 Reference list 填寫標題與年份，說明欄填「未提供 PDF」]
 
 | # | 標題 | 作者 / 年份 | 這篇做了什麼（一句話） |
@@ -722,10 +732,11 @@ type: paper-translation
 **翻譯品質要求**：
 - 所有文字皆翻，包括方程式的變數說明
 - 圖片引用保留：「如圖 X 所示」
+- **嵌圖（翻到哪放到哪，2026-10-19 使用者裁示）**：每張圖在「（圖 N：圖說）」那行正上方嵌入，照原文出現順序；`<img src="./Claude/img/<檔>.png" width="48%">`，(a)(b) 子圖兩張並排同一行、各 48%。圖檔用 Phase 1 擷取／匯入的同一批（figures.json 對應）。
 - 方程式編號保留：「（式 1）」
 - 技術術語：首次出現用「中文（英文）」，後續可任一形式
 
-**Phase 3 自查點**：輸入＝_extracted.txt（原文全文）、schema。輸出＝`<paperfolder>\簡稱_翻譯.md`。檢查＝翻譯章節數＝原文章節數；每個主要節有「精隨」callout；佔位字樣 0 筆。
+**Phase 3 自查點**：輸入＝_extracted.txt（原文全文）、schema。輸出＝`<paperfolder>\簡稱_翻譯.md`。檢查＝翻譯章節數＝原文章節數；每個主要節有「精隨」callout；佔位字樣 0 筆；「（圖 N：」行數＝原文圖數，且每行正上方都有 `<img ... width="48%">`。
 
 ---
 
@@ -790,7 +801,7 @@ python "<SKILLS_ROOT>\paper-to-study\postprocess.py" "<paperfolder>" "<paperfold
 - [ ] 嵌入圖已視覺辨識正確對應 Fig 編號
 - [ ] `<img>` 的 src 格式為 `./Claude/img/圖檔名`，不含 URL 編碼
 - [ ] 「與其他工作的關係」包含：Reference 簡介表、具體關係說明、可行性評估（含優缺點）
-- [ ] 若有 Reference/ 資料夾：每篇 PDF 均已由 subagent 批次讀取（鐵律 6，不進主對話），表格無空白說明欄
+- [ ] 若有 Reference/ 資料夾：每篇 PDF 均已由 subagent 批次讀取（不進主對話），表格無空白說明欄
 
 ### 4e. 告知使用者 Obsidian 設定
 

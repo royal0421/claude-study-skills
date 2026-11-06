@@ -24,7 +24,7 @@ description: 將「上課投影片講義 PDF」轉成兩份 Obsidian 相容的�
 
 | 參數 | 意義 | 缺少時 |
 |---|---|---|
-| `<講義PDF絕對路徑>` | 要處理的上課投影片 PDF | **缺少、或給的不是絕對路徑（只有檔名／相對路徑）時**，逐字問：**「要處理哪一份講義？請給 PDF 的完整路徑。」**<br>🚨 **不得自行到桌面或 `<VAULT_ROOT>\` 底下遞迴搜尋該檔名**（CLAUDE.md 鐵律 4：禁止遞迴掃大目錄）。一律問使用者。 |
+| `<講義PDF絕對路徑>` | 要處理的上課投影片 PDF | **缺少、或給的不是絕對路徑（只有檔名／相對路徑）時**，逐字問：**「要處理哪一份講義？請給 PDF 的完整路徑。」**<br>🚨 **不得自行到桌面或 `<VAULT_ROOT>\` 底下遞迴搜尋該檔名**（禁止遞迴掃大目錄）。一律問使用者。 |
 | `--exam <考古題PDF>` | 選用。給了才跑 Phase 8（回頭標記考點） | 不問、直接跳過 Phase 8 |
 
 **指令模糊時的固定提問**（使用者只說「幫我把這份講義弄一弄」之類）：
@@ -183,20 +183,22 @@ print('[OK] gate passed')
 | CLI 簽名 | `python render_pages.py <PDF絕對路徑> <輸出資料夾絕對路徑> [dpi]`（dpi 選填，預設 150） |
 | 輸出檔名 | `p01.png`、`p02.png`…**兩位數補零**；總頁數 ≥100 時自動改三位數 `p001.png` |
 | 哨兵字串 | 先印一行 `[INFO] page_count=<N> dpi=<d> png_in_dir=<M>`；成功再印 `[DONE] rendered=<N> dir=<路徑>` |
-| exit code | 0＝全部成功；1＝任一頁失敗（訊息 `[FAIL] page=<i>`）。**exit 0 就代表 N 張全部落地**，但仍須用 `Test-Path` 數檔複驗 |
+| exit code | 0＝全部成功；1＝任一頁失敗（訊息 `[FAIL] page=<i>`）。**exit 0 就代表 N 張全部落地**，但仍須實際數檔複驗（見下方 Phase 2 自查點） |
 | 覆寫行為 | 同名 PNG **直接覆寫**，不備份。重跑安全（冪等），輸出只由 PDF 決定 |
 
 **規格（不要改）**：
-- **整頁 render，不做圖區剪裁**。剪裁會配錯圖（book-to-study 曾整批配錯，見 lessons 2026-07-07）。
+- **整頁 render，不做圖區剪裁**。剪裁會配錯圖（book-to-study 曾整批配錯）。
 - dpi=150。要更清楚可調到 200，但兩份筆記全章要一致。
 
-**Phase 2 自查點**：輸入＝PDF；輸出＝`img_<簡稱>\` 內 N 張 PNG；檢查＝`(Get-ChildItem (Join-Path '<dir>' '*.png')).Count` 等於 `PAGE_COUNT`（注意：`-Include` 不加 `-Recurse` 會回空值＝假陰性，不要用）。
+**Phase 2 自查點**：輸入＝PDF；輸出＝`img_<簡稱>\` 內 N 張 PNG；檢查＝PNG 數等於 `PAGE_COUNT`：
+- Windows（PowerShell）：`(Get-ChildItem (Join-Path '<dir>' '*.png')).Count`（注意：`-Include` 不加 `-Recurse` 會回空值＝假陰性，不要用）
+- Mac（zsh，Bash 工具）：`ls "<dir>"/*.png | wc -l`
 
 ---
 
 ## Phase 3：派 digest subagent 代讀圖形內容
 
-文字層抓不到圖、也抓不到手寫註記。**主對話不得自己整批看圖**（CLAUDE.md 鐵律 6）。
+文字層抓不到圖、也抓不到手寫註記。**主對話不得自己整批看圖**。
 
 **派工規則**：
 - 每個 agent 最多 **32 頁**。切段演算法（機械，不要自己發明均分法）：**每段固定 32 頁，最後一段收尾**。
@@ -451,13 +453,19 @@ cssclasses:
 
 用本 skill 同資料夾的 `verify_handout.py`。
 
-**執行指令（逐字照抄，PowerShell）**——本機 stdout 預設是 `cp950`，直接重導向會產出亂碼，且訊息含 🔺/🖍️ 時會 `UnicodeEncodeError` 中斷整支驗證：
+**執行指令（逐字照抄，依電腦選一個）**——Windows 的 stdout 預設是 `cp950`，直接重導向會產出亂碼，且訊息含 🔺/🖍️ 時會 `UnicodeEncodeError` 中斷整支驗證：
 
 ```powershell
+# Windows（PowerShell）
 $env:PYTHONIOENCODING='utf-8'; python '<skill資料夾>\verify_handout.py' '<逐頁講解md>' '<重點複習md>' '<img資料夾>' <N> | Out-File -Encoding utf8 '<AI夾>\verify_<簡稱>_report.txt'
 ```
 
-寫完 **read-back 檢查報告首行不是亂碼**（`Get-Content <報告> -TotalCount 3`）。
+```zsh
+# Mac（Bash 工具；Mac 預設就是 UTF-8，不用設編碼；python3 不要加 -I，否則讀不到 ~/Library/Python 裡的套件）
+python3 "<skill資料夾>/verify_handout.py" "<逐頁講解md>" "<重點複習md>" "<img資料夾>" <N> > "<AI夾>/verify_<簡稱>_report.txt"
+```
+
+寫完 **read-back 檢查報告首行不是亂碼**（Windows：`Get-Content <報告> -TotalCount 3`；Mac：`head -3 <報告>`）。
 
 **腳本合約**：
 
@@ -513,7 +521,7 @@ $env:PYTHONIOENCODING='utf-8'; python '<skill資料夾>\verify_handout.py' '<逐
 2. 兩份 md 的檔頭已互相 `[[]]` 連結（Phase 5a／6）。
 3. 確認 CSS snippet 已啟用：`<VAULT_ROOT>\.obsidian\snippets\buck-slides.css` 存在，且 `.obsidian\appearance.json` 的 `enabledCssSnippets` 含 `buck-slides`。
    - **不存在**：本 skill 資料夾附了一份 `buck-slides.css`，複製到 `<VAULT_ROOT>\.obsidian\snippets\` 即可；接著請使用者到「設定 → 外觀 → CSS 程式片段」開啟 `buck-slides`。在最終回報明講這一步，否則 Obsidian 會變成上下排列。**不要自己去改 appearance.json 以外的 Obsidian 設定**。
-4. **不搬動任何既有檔案**（CLAUDE.md 鐵律 2、3）。
+4. **不搬動任何既有檔案**。
 
 **Phase 11 自查點**：輸入＝兩份 md；輸出＝MOC 已更新；檢查＝`Test-Path` 兩份 md、grep MOC 含兩個新連結。
 

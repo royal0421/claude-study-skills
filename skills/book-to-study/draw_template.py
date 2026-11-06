@@ -25,11 +25,20 @@ from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 from matplotlib import font_manager
 import numpy as np
 import os
+import glob
 
-cjk = None
-for c in [r'C:\Windows\Fonts\msjh.ttc', r'C:\Windows\Fonts\msjhbd.ttc', r'C:\Windows\Fonts\mingliu.ttc']:
-    if os.path.exists(c):
-        cjk = c; break
+# CJK 字型：Windows→ Mac（2026-10-08 加：Office 內附的微軟正黑體優先，跟 Windows 長得一樣）→ macOS 系統黑體
+_CJK_CANDIDATES = [
+    r'C:\Windows\Fonts\msjh.ttc', r'C:\Windows\Fonts\msjhbd.ttc', r'C:\Windows\Fonts\mingliu.ttc',
+    '/Applications/Microsoft Word.app/Contents/Resources/DFonts/msjh.ttc',
+    '/Applications/Microsoft PowerPoint.app/Contents/Resources/DFonts/msjh.ttc',
+    os.path.expanduser('~/Library/Fonts/msjh.ttc'), '/Library/Fonts/msjh.ttc',
+    '/System/Library/Fonts/STHeiti Medium.ttc', '/System/Library/Fonts/Hiragino Sans GB.ttc',
+]
+_CJK_CANDIDATES += sorted(glob.glob('/Applications/Microsoft *.app/Contents/Resources/DFonts/msjh*.tt*'))
+cjk = next((c for c in _CJK_CANDIDATES if os.path.exists(c)), None)
+if cjk is None:   # 沒有中文字型會畫出豆腐字（方框），寧可直接停下（失敗路徑表第 5 條）
+    raise SystemExit('[FAIL] 找不到中文字型（試過：' + '、'.join(_CJK_CANDIDATES) + '）')
 fp = font_manager.FontProperties(fname=cjk)
 fpb = font_manager.FontProperties(fname=cjk, weight='bold')
 plt.rcParams['axes.unicode_minus'] = False

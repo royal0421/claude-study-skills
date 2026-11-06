@@ -2,11 +2,12 @@
   "name": "claude-study-skills",
   "metadata": {
     "description": "Turn papers, textbook chapters and lecture handouts into structured Markdown study notes",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "plugins": [
     {
       "name": "study-skills",
+      "version": "1.1.0",
       "description": "Five PDF-to-Markdown study-note skills: paper-to-study, paper-to-review, paper-to-ppt, book-to-study, handout-to-study",
       "source": "./",
       "strict": false,

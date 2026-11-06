@@ -21,6 +21,15 @@
 
 裝完在新視窗打 `/skills` 應該看得到五個。
 
+### 更新到新版
+
+```
+/plugin marketplace update claude-study-skills
+/plugin update study-skills@claude-study-skills
+```
+
+更新後重開視窗。更新會蓋掉已安裝的檔案，下一節的路徑佔位符要重換一次。
+
 ## 使用前必改：路徑佔位符
 
 這些 skill 原本寫給一套固定的資料夾結構，公開版把個人路徑換成了佔位符。**跑之前先全域搜尋以下字串，換成你自己的路徑**：
@@ -65,26 +74,6 @@
 - 圖片剪裁的哨兵計數只證明「有產出」，不證明「配對正確」→ 一律目視抽查
 
 所以 SKILL.md 都很長。那是刻意的：規則寫得夠死，弱模型才不會自由發揮。
-
-## 維護：同步本機版本（給作者）
-
-本機開發版與這個公開版是兩份分開的副本。改完本機版後：
-
-```
-python tools/sync.py       # 從本機 .my-skills 同步 + 去個人化 + 檢查
-git add -A && git commit -m "..." && git push
-```
-
-`tools/sync.py` 會做四件事：
-
-1. 把個人路徑換成佔位符
-2. 排除不公開的檔案（`slides.pptx`）
-3. 重新套上「公開版專屬修改」（`PUBLIC_PATCHES`）——同步是覆蓋式的，這些差異每次都要重貼
-4. 掃描殘留個資，**有殘留就 exit 1**（別在紅燈時 push）
-
-只想檢查不寫檔：`python tools/sync.py --check`。
-
-若印出 `[PATCH-MISS]`，代表源版改寫過被 patch 的那一段 → 回去更新 `PUBLIC_PATCHES` 再跑。
 
 ## 授權
 

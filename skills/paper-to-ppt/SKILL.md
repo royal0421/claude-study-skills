@@ -421,18 +421,19 @@ def make_outline(section_figs, ieee_citation):
 
     lines = [f"{i+1}.  {t}" for i, t in enumerate(clean_titles)]
     lines.append("")
-    lines.append("  Ref:")
+    lines.append("Ref:")   # 不加前導空白：要與下方引用文字左緣對齊
     lines.append(ieee_citation)
     return lines
 
 # 範例參數，填當前論文實際值，勿照抄
 OUTLINE = make_outline(section_figs,
-    'F. A. Altolaguirre and M.-D. Ker, "Power-rail ESD clamp circuit with diode-string ESD '
-    'detection to overcome the gate leakage current in a 40-nm CMOS process," IEEE Trans. '
-    'Electron Devices, vol. 60, no. 10, pp. 3500-3507, Oct. 2013, doi: 10.1109/TED.2013.2274701.')
+    'F. A. Altolaguirre and M.-D. Ker, “Power-rail ESD clamp circuit with diode-string ESD '
+    'detection to overcome the gate leakage current in a 40-nm CMOS process,” <i>IEEE Trans. '
+    'Electron Devices</i>, vol. 60, no. 10, pp. 3500–3507, Oct. 2013, doi: 10.1109/TED.2013.2274701.')
 ```
 
 > 引用字串較長，`outline_box()` 中把 `Ref:` 之後的行字級降到 16pt（其餘 22pt），避免溢出。
+> **斜體一定要標**：引用字串裡用 `<i>…</i>` 包住期刊名／會議名，`outline_box()` 會把它轉成斜體 run（2026-10-15 漏標被使用者抓到）。引號用彎引號 `“…”`、頁碼範圍用 en dash `–`（指南範例皆如此）。
 
 #### IEEE 引用格式（硬規則，不得自行簡化）
 
@@ -447,8 +448,11 @@ J. K. Author, "Name of paper," Abbrev. Title of Periodical, vol. x, no. x, pp. x
 **會議論文 Basic Format（p.8）** ——注意只有會議論文才有 `in`：
 
 ```
-J. K. Author, "Title of paper," in Abbreviated Name of Conf., Month and day(s), year, pp. xxx-xxx.
+J. K. Author, "Title of paper," in Abbreviated Name of Conf., (location optional), (Month and day(s) if provided) year, pp. xxx-xxx.
+J. K. Author, "Title of paper," in Abbreviated Name of Conf., (location optional), year, pp. xxx–xxx, doi: xxx.   ← 有 DOI（p.8）
 ```
+
+會議名縮寫照指南 p.7 表（Proceedings→Proc.、International→Int.、Symposium→Symp.、Conference→Conf.）＋ p.26 縮寫表（Reliability→Rel.、Physics→Phys.），會議名**斜體**（只斜體會議名，`in` 不斜體）。**地點與月日省略**（指南 p.8 帶 DOI 格式中地點標 optional；實驗室學長柯杰辰的 IEDM 引用即 `in IEDM Tech. Dig., 2025, pp. 1-4, doi: …`，2026-10-15 使用者指定以他為範本）。頁碼用 Xplore／Crossref 登記的頁碼（`api.crossref.org/works/<doi>` 的 `page`，例 `1–7`），不用論文頁尾的 `8C.3-1` 式編號。頁碼範圍用 en dash（指南範例）。作者名逐一對論文首頁（連字號名 `Jean-Jacques`→`J.-J.`；括號暱稱如 `(Paul)` 不列）；≤6 位全列，>6 位才用第一作者＋`et al.`。例：`S. Huang, S. Parthasarathy, Y. Zhou, J.-J. Hajjar, and E. Rosenbaum, “…,” in <i>Proc. IEEE Int. Rel. Phys. Symp. (IRPS)</i>, 2024, pp. 1–7, doi: 10.1109/IRPS48228.2024.10529384.`
 
 **四個最常踩的坑**（2026-08-18 實際校對 IEEE Xplore 匯出字串時發現）：
 
@@ -465,9 +469,57 @@ J. K. Author, "Title of paper," in Abbreviated Name of Conf., Month and day(s), 
 - 收進正式期別的文章用**期別日期**（如 vol. 60 no. 10 → `Oct. 2013`），不是 early access 的 Date of Publication；early access 才用後者（指南 p.4）。
 - `Electron Devices` 的 Electron **不加句點**（那是名詞「電子」，不是 Electronic 的縮寫；縮寫表中 `Electronic → Electron.` 才有句點）。
 - 全部引用以句點結尾（含帶 DOI 者）。
-- **⚠️ 不要直接貼 IEEE Xplore「Cite This」按鈕的字串**——它與官方 Reference Style 不一致（會加 `in`、不縮寫期刊名、姓名縮寫間多空格），貼完必須手動修正上表四項。
+- **⚠️ 不要直接貼 IEEE Xplore「Cite This」按鈕的字串**——它與官方 Reference Style 不一致（期刊論文也加 `in`、不縮寫期刊名、姓名縮寫間多空格），貼完必須手動修正上表四項。（會議論文本來就要 `in`，別誤刪。）
+
+**實驗室範本（柯杰辰學長歷次報告，2026-10-15 使用者指定「他一定是對的」）**——格式拿不準時先對這兩條：
+- 期刊：`Y. Ma et al., “Monolithically integrated bidirectional gate ESD protection scheme of p-GaN power HEMT by dual-gate device technology,” <i>IEEE Trans. Power Electronics</i>, vol. 40, no. 2, pp. 2721-2725, Feb. 2025.`（`Group Meeting\20251223\`）
+- 會議：`S.-H. Hung et al., “Full-chip ESD for the monolithic GaN-based gate driver with ultra-low leakage current,” in <i>IEDM Tech. Dig.</i>, 2025, pp. 1-4, doi: 10.1109/IEDM50572.2025.11353697.`（`Group Meeting\20260428\`）
+- 範本與指南不同的三處，**以指南為準**（使用者已知情）：①他把 `in` 也斜體 → 我們只斜體刊名／會議名 ②他頁碼用 `-` → 我們用 en dash `–` ③範本用 `et al.` 是因為作者 >6 位，≤6 位一律全列。
+
+**資料來源（不准憑印象）**：作者全名看論文首頁；頁碼、出版年、刊名卷期看 Crossref `https://api.crossref.org/works/<doi>`（`page`、`published`、`volume`、`issue`、`container-title`）；DOI 無 HTML 時從 PDF 首頁側邊或頁尾抓。
+
+**引用自查清單（產完 PPT 後逐條勾，任一條不過就修完重產）**：
+1. 作者：名縮寫在前、連字號名 `J.-J.`、≤6 位全列並在最後一位前加 `, and`
+2. 標題：句首大寫（專有名詞／縮寫保留大寫），彎引號，逗號在右引號內 `,”`
+3. 期刊無 `in`；會議有 `in`（`in` 本身不斜體）
+4. 刊名／會議名已縮寫（指南 p.7 會議表＋p.23 起縮寫表）且**在 PPT 裡實際是斜體**——用 python-pptx 讀 slide 2 印出 `font.italic=True` 的 run，必須恰好是刊名／會議名
+5. 會議論文不放地點與月日；期刊放 `vol., no., pp., 月. 年`
+6. 頁碼＝Crossref `page`、範圍用 en dash；有 DOI 就放 `doi: …`；全句以句點結尾
+7. `Ref:` 與引用文字左緣對齊（匯出 slide 2 的 JPEG 目視）
 
 > 慣例：**大綱第一項固定是 Introduction**（IEEE 論文第 I 節；模板 slide 2 的「I. Introduction」字樣即此提醒）。注意 `section_figs` 只含**有圖**章節（1b 會過濾空節）——若 Introduction 無圖而沒出現在 make_outline 結果裡，**手動把 `1.  Introduction` 補到 lines 開頭並重編號**（大綱要呈現論文全部章節、與論文同序）；補完首項仍不對才回頭檢查 1b 的章節解析。
+
+### 2g-2. 生成 TITLE_INFO（第 1 頁 Title，全自動）
+
+2026-10-20 使用者裁示：第 1 頁**全部自動填**，不再留給他手填。格式以實驗室學長柯杰辰 2026/9/1 VLSI 報告的 Title 頁為範本：
+
+```
+<論文完整題目>
+Author: Tao-Yi Hung, Li-Wei Chu, Wun-Jie Lin, Jam-Wem Lee, and Kuo-Ji Chen
+Published in: IEEE Symposium on VLSI Technology and Circuits        ← 會議／期刊名斜體
+Date of Conference: 14 ~ 18, June, 2026
+Reporter: Yu-You Luo / Advisor: Chun-Yu Lin / Date: 2026/9/1
+```
+
+```python
+# 範例參數，填當前論文實際值，勿照抄
+TITLE_INFO = {
+    "title": "Reduced RC Time Constant High Voltage Tolerant Supply Clamp for ESD Protection in 16nm FinFET Technology",
+    "authors": ["Shudong Huang", "Srivatsan Parthasarathy", "Yuanzhong Zhou", "Jean-Jacques Hajjar", "Elyse Rosenbaum"],
+    "venue": "IEEE International Reliability Physics Symposium (IRPS)",
+    "date_label": "Date of Conference",      # 期刊論文改 "Date of Publication"
+    "date": "14 ~ 18, April, 2024",          # 期刊論文：期別日期 "October 2013"
+    "report_date": "2026/10/20",             # 報告日 YYYY/M/D（月日不補 0）
+}
+```
+
+**資料來源（不准憑印象）**：
+- `title`：論文完整題目，照論文首頁大小寫（不是 IEEE 引用的句首大寫）。
+- `authors`：**全名**，照論文首頁順序；與 Crossref `author`（`given`＋`family`）交叉核對。括號暱稱不列。
+- `venue`：Crossref `container-title` 的正式全名，**去掉開頭年份**（`2024 IEEE International Reliability Physics Symposium (IRPS)` → `IEEE International Reliability Physics Symposium (IRPS)`）；不縮寫。
+- `date`：會議論文取 Crossref `event.start`／`event.end` 的 `date-parts`，寫成 `D1 ~ D2, Month, YYYY`（月份英文全名；單日會議寫 `D, Month, YYYY`；跨月寫 `30, March ~ 2, April, 2026`）。Crossref 沒有 `event` → 查 Xplore 論文頁的「Date of Conference」，再查不到就問使用者。期刊論文：`date_label="Date of Publication"`，`date` 用期別月份年份（`October 2013`；early access 才用 Xplore 的 Date of Publication）。
+- `report_date`：**報告日**＝記憶 group-meeting 報 paper 班表中「今天以後最近的一次」（含今天）；班表沒有或都已過 → 問使用者一次。
+- `Reporter: Yu-You Luo`、`Advisor: Chun-Yu Lin` 固定，寫在 3a 的 `fill_title_slide()` 裡，不放進 TITLE_INFO。
 
 ### 2h. 組裝最終 plan
 
@@ -483,7 +535,7 @@ for section, mode, figs in groupings:
 plan.append(("V. Conclusion", "conclusion", (), CONCLUSION))
 ```
 
-**Phase 2 自查點**：輸入＝pdf_text、section_figs、fig_map。輸出＝paired_figs、groupings、KEY_TERMS、desc_segments、CONCLUSION、OUTLINE、plan。檢查＝plan 涵蓋 section_figs 每張圖恰一次；CONCLUSION 恰 3 點；OUTLINE 第一項為 Introduction；每張 slide 的 desc ≤130（大寫密集 ≤120）字元。
+**Phase 2 自查點**：輸入＝pdf_text、section_figs、fig_map。輸出＝paired_figs、groupings、KEY_TERMS、desc_segments、CONCLUSION、OUTLINE、TITLE_INFO、plan。檢查＝TITLE_INFO 六欄皆非空、作者數與論文首頁一致、`venue` 開頭無年份；plan 涵蓋 section_figs 每張圖恰一次；CONCLUSION 恰 3 點；OUTLINE 第一項為 Introduction；每張 slide 的 desc ≤130（大寫密集 ≤120）字元；OUTLINE 的引用字串過 2g「引用自查清單」第 1–6 條（刊名／會議名已用 `<i>…</i>` 包住）。
 
 ---
 
@@ -491,7 +543,7 @@ plan.append(("V. Conclusion", "conclusion", (), CONCLUSION))
 
 ### 3a. 完整生成腳本（先讀組裝說明）
 
-**gen_ppt.py 必須是一支自含腳本**：把 Phase 1（解析 HTML → fig_map/section_figs）與 Phase 2（plan/OUTLINE/CONCLUSION/KEY_TERMS）的程式碼、或它們算出的結果（以字面量寫死），與下方 Phase 3a 主體**組進同一支檔案**——下方腳本單獨執行會因 `fig_map`/`plan`/`OUTLINE` 未定義而 NameError。**存放位置：`<paperfolder>\Claude\gen_ppt.py`**（用 Write 工具建立）。
+**gen_ppt.py 必須是一支自含腳本**：把 Phase 1（解析 HTML → fig_map/section_figs）與 Phase 2（plan/OUTLINE/CONCLUSION/KEY_TERMS/TITLE_INFO）的程式碼、或它們算出的結果（以字面量寫死），與下方 Phase 3a 主體**組進同一支檔案**——下方腳本單獨執行會因 `fig_map`/`plan`/`OUTLINE` 未定義而 NameError。**存放位置：`<paperfolder>\Claude\gen_ppt.py`**（用 Write 工具建立）。
 
 `desc_box` 接受 `[(text, color_or_None)]` segments（與 conclusion 格式相同）。
 
@@ -501,7 +553,7 @@ Paper-to-PPT generator.
 Run via PowerShell (not bash) for Chinese path compatibility.
 Close PowerPoint before running to avoid PermissionError.
 """
-import os, re
+import os, re, copy
 from collections import OrderedDict
 from pathlib import Path
 from pptx import Presentation
@@ -538,13 +590,11 @@ CT_RMAR        = 400000
 CT_W           = int(prs.slide_width) - CT_LEFT - CT_RMAR   # 8244000
 FOOTER_TOP     = 6408738
 CLEARANCE      = 20000
-CAP_H          = 80000
-CAP_GAP        = 25000
-CAP_TOP        = FOOTER_TOP - CLEARANCE - CAP_H              # 6308738
-DESC_H         = 500000      # 2-line capacity: spcBef(12700)+2×18pt(457200)+buffer; DO NOT reduce below 500000
+# 圖下方不放「Fig. N」標示（2026-10-15 使用者裁示拿掉）→ 圖片高度直接延伸到 footer 上方
+DESC_H         = 500000      # 2-line capacity: spcBef(12700)+2×18pt(457200)+buffer; DO NOT reduce below 500000（前提：desc_box 的 tIns/bIns=0）
 DESC_GAP       = 20000
 IMG_TOP        = CT_TOP + DESC_H + DESC_GAP                  # 1877817
-IMG_H          = CAP_TOP - IMG_TOP - CAP_GAP                 # 4405921
+IMG_H          = FOOTER_TOP - CLEARANCE - IMG_TOP            # 4510921
 CT_H           = FOOTER_TOP - CLEARANCE - CT_TOP             # 5030921
 custom_layout  = prs.slide_layouts[1]
 
@@ -649,40 +699,19 @@ def desc_box(slide, segments):
     txBox = slide.shapes.add_textbox(Emu(CT_LEFT), Emu(CT_TOP), Emu(CT_W), Emu(DESC_H))
     tf = txBox.text_frame; tf.word_wrap = True
     tf._txBody.bodyPr.set('anchor', 't')
+    # 預設上緣內距 45720 EMU 不在 DESC_H 預算內 → 單張高圖時第二行會被圖片白邊蓋住（2026-10-15 實測）
+    tf._txBody.bodyPr.set('tIns', '0'); tf._txBody.bodyPr.set('bIns', '0')
     p = tf.paragraphs[0]
     _set_para_hanging_indent(p, spc_before_pts=1)
     _append_wingdings_bullet(p._p)
     for text, color in segments:
         _append_text_run(p._p, text, bold=True, size_pt=18, color=color)
 
-def _single_cap_box(slide, fig_num):
-    txBox = slide.shapes.add_textbox(Emu(CT_LEFT), Emu(CAP_TOP), Emu(CT_W), Emu(CAP_H))
-    tf = txBox.text_frame; tf.word_wrap = False
-    tf._txBody.bodyPr.set('anchor', 'ctr')
-    p = tf.paragraphs[0]
-    p._p.get_or_add_pPr().set('algn', 'ctr')
-    run = p.add_run()
-    run.text = f"Fig. {fig_num}"; run.font.size = Pt(14)
-    run.font.bold = True; run.font.name = "Arial"
-
-def _double_cap_boxes(slide, fig_a, fig_b):
-    gap    = 80000
-    half_w = (CT_W - gap) // 2
-    for fig_num, x_off in [(fig_a, CT_LEFT), (fig_b, CT_LEFT + half_w + gap)]:
-        txBox = slide.shapes.add_textbox(Emu(x_off), Emu(CAP_TOP), Emu(half_w), Emu(CAP_H))
-        tf = txBox.text_frame; tf.word_wrap = False
-        tf._txBody.bodyPr.set('anchor', 'ctr')
-        p = tf.paragraphs[0]
-        p._p.get_or_add_pPr().set('algn', 'ctr')
-        run = p.add_run()
-        run.text = f"Fig. {fig_num}"; run.font.size = Pt(14)
-        run.font.bold = True; run.font.name = "Arial"
-
+# 圖下方不加「Fig. N」標示文字框（2026-10-15 使用者裁示）
 def one_fig(slide, fig_num, desc_segments):
     img_path = _get_img_path(fig_num, fig_map)
     desc_box(slide, desc_segments)
     _place_image(slide, img_path, CT_LEFT, IMG_TOP, CT_W, IMG_H)
-    _single_cap_box(slide, fig_num)
 
 def two_figs(slide, fig_a, fig_b, desc_segments):
     gap    = 80000
@@ -690,7 +719,6 @@ def two_figs(slide, fig_a, fig_b, desc_segments):
     desc_box(slide, desc_segments)
     _place_image(slide, _get_img_path(fig_a, fig_map), CT_LEFT,           IMG_TOP, half_w, IMG_H)
     _place_image(slide, _get_img_path(fig_b, fig_map), CT_LEFT+half_w+gap, IMG_TOP, half_w, IMG_H)
-    _double_cap_boxes(slide, fig_a, fig_b)
 
 def outline_box(slide, lines):
     txBox = slide.shapes.add_textbox(Emu(CT_LEFT), Emu(CT_TOP), Emu(CT_W), Emu(CT_H))
@@ -702,11 +730,16 @@ def outline_box(slide, lines):
             p.space_before = Pt(11)   # 0.5 × 22pt
         if line.strip().startswith("Ref:"):
             ref_seen = True
-        run = p.add_run()
-        run.text = line
-        # 章節列 22pt；"Ref:" 起的完整 IEEE 引用較長，降為 16pt 以免溢出版面
-        run.font.size = Pt(16) if ref_seen else Pt(22)
-        run.font.bold = True; run.font.name = "Arial"
+        # <i>...</i> 標出要斜體的段落（期刊名／會議名，見 2g「IEEE 引用格式」）
+        for k, piece in enumerate(re.split(r"</?i>", line)):
+            if not piece:
+                continue
+            run = p.add_run()
+            run.text = piece
+            # 章節列 22pt；"Ref:" 起的完整 IEEE 引用較長，降為 16pt 以免溢出版面
+            run.font.size = Pt(16) if ref_seen else Pt(22)
+            run.font.bold = True; run.font.name = "Arial"
+            run.font.italic = (k % 2 == 1)
 
 def conclusion_box(slide, points):
     txBox = slide.shapes.add_textbox(Emu(CT_LEFT), Emu(CT_TOP), Emu(CT_W), Emu(CT_H))
@@ -719,21 +752,113 @@ def conclusion_box(slide, points):
         for text, color in segments:
             _append_text_run(p._p, text, bold=True, size_pt=18, color=color)
 
+# ── Title slide（2g-2 TITLE_INFO；2026-10-20 使用者裁示全部自動填）─────────────
+TITLE_AREA_TOP, TITLE_AREA_BOT = 742578, 2780928   # 模板 AutoShape 4（題目底框）上下緣
+TITLE_MAX_H_PT = 160                                # 題目可用高度（pt），超過就縮字
+
+def _join_authors(names):
+    if len(names) == 1: return names[0]
+    if len(names) == 2: return f"{names[0]} and {names[1]}"
+    return ", ".join(names[:-1]) + ", and " + names[-1]
+
+INFO_BOT       = 4869160 - 60000                    # 文字框 1 下緣上限＝模板分隔線（Line 3）上方
+INFO_MAX_H_PT  = (INFO_BOT - 2924943) / 12700       # 文字框 1（top 2924943）可用高度
+
+def _wrap_lines(text, width_emu, size):
+    """估計行數：Arial 粗體平均字寬約 0.55 em（2026-10-20 實測約 0.52）。只是初估，渲染 QA 才算數。"""
+    cap, lines, cur = int(width_emu / 12700 / (0.55 * size)), 1, 0
+    for w in text.split():
+        add = len(w) if cur == 0 else len(w) + 1
+        if cur + add > cap and cur > 0:
+            lines += 1; cur = len(w)
+        else:
+            cur += add
+    return lines
+
+def _title_font_pt(text, box_w):
+    """放得進題目框的最大字級（行高 1.2）。"""
+    for size in (48, 44, 40, 36, 32, 28, 24):
+        lines = _wrap_lines(text, box_w, size)
+        if lines * size * 1.2 <= TITLE_MAX_H_PT:
+            return size, lines
+    return 24, lines
+
+def _info_font_pt(texts, box_w):
+    """文字框 1 三行（作者多、會議名長時會折行）放得進分隔線上方的最大字級；行高 1.25、段距 0.2 em。"""
+    for size in (24, 22, 20, 18, 16):
+        n = sum(_wrap_lines(t, box_w, size) for t in texts)
+        if n * size * 1.25 + len(texts) * size * 0.2 <= INFO_MAX_H_PT:
+            return size
+    return 16
+
+def _set_label_line(p, label, value, italic=False):
+    """模板段落＝[標籤 run, 冒號 run, (值 run)]；沿用標籤 run 的格式，冒號統一半形。"""
+    runs = p.runs
+    runs[0].text = label
+    runs[1].text = ": "
+    for r in runs[2:]:
+        p._p.remove(r._r)
+    new_r = copy.deepcopy(runs[0]._r)
+    new_r.find(qn('a:t')).text = value
+    new_r.find(qn('a:rPr')).set('i', '1' if italic else '0')
+    runs[1]._r.addnext(new_r)        # 放在冒號後、a:endParaRPr 前（OOXML 順序）
+
+def fill_title_slide(slide, info):
+    shapes = {sh.text_frame.text.strip().split("\n")[0][:6]: sh for sh in slide.shapes if sh.has_text_frame}
+    title_sh, box1, box2 = shapes["Title"], shapes["Author"], shapes["Report"]
+    # 題目：改既有 run 的字，保留模板格式；字長就縮字，並在底框內垂直置中
+    size, lines = _title_font_pt(info["title"], title_sh.width)
+    run = title_sh.text_frame.paragraphs[0].runs[0]
+    run.text = info["title"]; run.font.size = Pt(size)
+    title_sh.text_frame.word_wrap = True
+    h = int(lines * size * 1.2 * 12700)
+    title_sh.top = max(TITLE_AREA_TOP, (TITLE_AREA_TOP + TITLE_AREA_BOT) // 2 - h // 2)
+    # 文字框 1：Author／Published in／Date of ...，刪掉模板的空行
+    # 模板框只有 6.6 吋寬，五位作者＋會議全名在 24pt 會溢出壓到 Reporter（2026-10-20 實測）
+    # → 加寬到與題目框同寬，再依內容縮字
+    lines = [f"Author: {_join_authors(info['authors'])}",
+             f"Published in: {info['venue']}",
+             f"{info['date_label']}: {info['date']}"]
+    box1.left, box1.width = title_sh.left, title_sh.width
+    size = _info_font_pt(lines, box1.width)
+    ps = box1.text_frame.paragraphs
+    _set_label_line(ps[0], "Author", _join_authors(info["authors"]))
+    _set_label_line(ps[1], "Published in", info["venue"], italic=True)
+    _set_label_line(ps[3], info["date_label"], info["date"])
+    box1.text_frame._txBody.remove(ps[2]._p)
+    for p in box1.text_frame.paragraphs:
+        for r in p.runs:
+            r.font.size = Pt(size)
+    # 文字框 2：Reporter／Advisor 固定，Date＝報告日
+    ps = box2.text_frame.paragraphs
+    _set_label_line(ps[0], "Reporter", "Yu-You Luo")
+    _set_label_line(ps[1], "Advisor", "Chun-Yu Lin")
+    _set_label_line(ps[2], "Date", info["report_date"])
+
 # ── Main ──────────────────────────────────────────────────────────────────────
-# 模板固定 6 張：0=Title（不修改；論文題目/作者/日期由使用者事後手填，Reporter/Advisor 已預填）
+# 模板固定 6 張：0=Title（本腳本依 TITLE_INFO 填入，見 2g-2）
 #   1=Outline（本腳本填入）
 #   2=「I. Introduction」、3/4=空白 —— 模板內建「版面示意頁」：
 #     2 提醒大綱第一項固定是 Introduction；3/4 示範「標題＋底線＋內容」版面。
 #     只供人打開模板參考用，成品不需要 → 生成時必須刪除，否則會夾在成品中間
 #   5=Thanks（最後搬到結尾）
-# Slide 0 (Title): NO modification
+# Slide 0 (Title): auto-filled from Phase 2g-2
+fill_title_slide(prs.slides[0], TITLE_INFO)
 # Slide 1 (Outline): auto-generated OUTLINE from Phase 2g
 outline_box(prs.slides[1], OUTLINE)
 
 # 刪除模板示意頁 index 2-4（由高到低刪，索引才不會位移）
+# ⚠️ 只 remove sldId 不夠：頁面 part 仍留在檔案裡，之後 add_slide 會產生同名 slideN.xml
+#    → 存出的 zip 有重複檔名（UserWarning: Duplicate name），PowerPoint 打不開（2026-10-15 實測）。
+#    必須 drop_rel 移除 part，再把留下的 Title/Outline/Thanks 重新編號（Thanks 原本是 slide6.xml，不改會再撞一次）。
+from pptx.opc.packuri import PackURI
 sldIdLst = prs.slides._sldIdLst
 for _i in (4, 3, 2):
-    sldIdLst.remove(sldIdLst[_i])
+    _sid = sldIdLst[_i]
+    prs.part.drop_rel(_sid.rId)
+    sldIdLst.remove(_sid)
+for _k, _s in enumerate(prs.slides):
+    _s.part.partname = PackURI(f"/ppt/slides/slide{_k + 1}.xml")
 thanks_elem = sldIdLst[-1]          # 刪完示意頁後，最後一張就是 Thanks
 
 # Content + Conclusion slides: auto-generated plan from Phase 2h
@@ -762,17 +887,56 @@ print(f"Saved: {OUT}")
 python "<paperfolder>\Claude\gen_ppt.py"
 
 # 若 PermissionError（PowerPoint 開著）:
-Stop-Process -Name "POWERPNT" -Force
+# 不要強制結束 PowerPoint（會殺掉所有視窗、未存檔的簡報直接遺失）。
+# 請使用者先存檔並關閉 PowerPoint，他確認後再重跑：
 python "<paperfolder>\Claude\gen_ppt.py"
 ```
 
-**Phase 3 自查點**：輸入＝plan／OUTLINE／CONCLUSION＋模板檔。輸出＝`<paperfolder>\PPT.pptx`。檢查＝byte-check BULLET_CHAR 通過（見 Phase 4 前置）；腳本印出 `Saved:` 路徑；成品張數＝2（Title＋Outline）＋內容張數＋1（Thanks），示意頁 0 張。
+**Phase 3 自查點**：輸入＝plan／OUTLINE／CONCLUSION／TITLE_INFO＋模板檔。slide 1 的題目、`Author:`、`Published in:`（值 run 斜體）、`Date of …:`、`Date:` 皆已填值、無全形冒號（python-pptx 讀出確認）。輸出＝`<paperfolder>\PPT.pptx`。檢查＝byte-check BULLET_CHAR 通過（見 Phase 4 前置）；腳本印出 `Saved:` 路徑；成品張數＝2（Title＋Outline）＋內容張數＋1（Thanks），示意頁 0 張；執行輸出**不得出現 `Duplicate name`**（出現＝檔案已損毀，PowerPoint 會打不開，QA 匯出會報 COM 例外）；圖片下方無「Fig. N」標示；slide 2 的斜體 run 恰為刊名／會議名、`Ref:` 與引用左緣對齊（2g 引用自查清單第 4、7 條）。
 
 ---
 
-## Phase 4：QA — PowerShell COM 匯出 JPEG
+## Phase 4：QA — 匯出每張投影片 JPEG
 
-> 本 Phase 輸入＝PPT.pptx；輸出＝`qa_slides\slide-NN.jpg`；自查＝下方逐張確認清單。
+> 本 Phase 輸入＝PPT.pptx；輸出＝`qa_slides\slide-NN.jpg`（1280×960）；自查＝下方逐張確認清單。
+
+**Windows**——用 skill 附的 Python 腳本（late binding，不靠 Office type library；實測下方 PowerShell 寫法報 `TYPE_E_CANTLOADLIBRARY`、這支正常）。只會關掉它自己開的 PowerPoint；PowerPoint 原本就開著時只關它開的這份簡報：
+
+```powershell
+python "<SKILLS_ROOT>\paper-to-ppt\qa_export_win.py" "<paperfolder>\PPT.pptx" "<paperfolder>\qa_slides"
+```
+
+**Mac**——Mac PowerPoint 匯出 PDF → `pdftoppm` 切成 1280×960 JPEG。檔案先複製進 PowerPoint 的沙盒夾（免授權視窗）；只關這份簡報、不結束 PowerPoint。
+
+> **前置條件：PowerPoint 要已經開著至少一個視窗（任何簡報都行）。** 剛啟動、停在起始畫面（範本挑選）沒有視窗時，AppleScript 開檔會回 `-9074`，換 `open alias`／`open -a` 也一樣。遇到 -9074 → 請使用者在 PowerPoint 開一份空白簡報，**下面區塊原文不改**重跑即可；或 Claude 自己先跑 `osascript -e 'tell application "Microsoft PowerPoint" to make new presentation'`，**等約 4 秒**（`count of windows` 變成 1 才算好，立刻查還是 0），再跑下面區塊（PowerPoint 冷啟動停在起始畫面那種情形未另測）。
+
+
+
+```bash
+SB=~/Library/Containers/com.microsoft.Powerpoint/Data/Documents/ppt_qa
+P="<paperfolder>"
+rm -rf "$SB" && mkdir -p "$SB" && cp "$P/PPT.pptx" "$SB/qa.pptx"
+osascript -e 'on run argv
+  set src to item 1 of argv
+  set dst to (POSIX file (item 2 of argv)) as text
+  tell application "Microsoft PowerPoint"
+    set n0 to count of presentations
+    open (POSIX file src)
+    set t to 0
+    repeat while (count of presentations) = n0
+      delay 1
+      set t to t + 1
+      if t > 120 then error "PowerPoint 120 秒內沒有開好檔案"
+    end repeat
+    save active presentation in dst as save as PDF
+    close active presentation saving no
+  end tell
+end run' "$SB/qa.pptx" "$SB/qa.pdf"
+rm -rf "$P/qa_slides" && mkdir -p "$P/qa_slides" && pdftoppm -jpeg -scale-to-x 1280 -scale-to-y 960 "$SB/qa.pdf" "$P/qa_slides/slide"
+ls "$P/qa_slides" | wc -l   # 應＝投影片張數
+```
+
+**舊 PowerShell 寫法**（Windows 備援；部分環境會報 type library 錯，留著給 Office 修復後用）：
 
 ```powershell
 $pptxPath = "完整路徑\PPT.pptx"
@@ -807,7 +971,7 @@ COM 匯出失敗（無 Office／COM 報錯）→ 不阻斷交付：回報使用�
 - 紅字正確顯示（desc 和 conclusion）
 - 圖片正確置中不變形
 - desc 文字確認為 2 行，未溢出進圖片區
-- Title slide 未被修改（論文題目/作者/日期記得自行填寫）；Thanks 在最後
+- Title slide 已填好（題目未溢出底框、Author／Published in／Date of … 三行、會議／期刊名斜體、冒號半形、Reporter／Advisor／Date＝報告日）；Thanks 在最後
 - **Outline 之後直接是第一張內容頁**——無殘留的「I. Introduction」示意頁或空白頁（有＝腳本漏了刪 index 2-4）
 - **Outline 頁末尾有完整的 IEEE 格式引用**，且逐項對過 Phase 2g「四個最常踩的坑」：期刊論文無 `in`、期刊名已縮寫、縮寫後沒有多餘的 `on`、姓名縮寫無多餘空格
 
@@ -823,7 +987,6 @@ COM 匯出失敗（無 Office／COM 報錯）→ 不阻斷交付：回報使用�
 | desc（● 後正文） | Arial | 18pt | 是 |
 | Outline 列表 | Arial | 22pt | 是 |
 | Conclusion bullet | Arial | 18pt | 是 |
-| Fig. N caption | Arial | 14pt | 是 |
 
 **最小 header 字號永遠是 30pt。**
 
@@ -847,11 +1010,11 @@ COM 匯出失敗（無 Office／COM 報錯）→ 不阻斷交付：回報使用�
 | 問題 | 解法 |
 |------|------|
 | 圖片抽不到 | 確認根層 PDF 存在並重跑 Phase 1a-2；向量量測圖改用 `extract_figures.py` page 模式算繪（Phase 1c）|
-| `PermissionError` 存檔失敗 | `Stop-Process -Name "POWERPNT" -Force` |
+| `PermissionError` 存檔失敗 | PowerPoint 開著。請使用者先存檔並關閉 PowerPoint，確認後再重跑；**不要 `Stop-Process` 強制結束**（未存檔的簡報會遺失） |
 | 紅字未顯示 | `solidFill` 必須在 `a:latin` 之前（OOXML 順序，`_append_text_run` 已處理）|
 | 圖片變形 | 安裝 PIL（`pip install Pillow`）；HAS_PIL = True 時自動等比例縮放 |
 | 中文路徑 UnicodeError | 必須用 PowerShell 執行，不能用 bash |
-| Wingdings ● 消失（無子彈） | `BULLET_CHAR` 中 U+F06C 被編輯器靜默丟棄；執行前用 byte-check 驗證；修復用 PowerShell Replace |
+| Wingdings ● 消失（無子彈） | `BULLET_CHAR` 中 U+F06C 被編輯器靜默丟棄；執行前用 byte-check 驗證；修復：用 Edit 工具把該行改回 escape 寫法 `BULLET_CHAR = "\uF06C"`（不要用 PowerShell Replace 或 heredoc，傳參層會再丟一次該字元） |
 | Wingdings ● 顯示為方框 | PowerPoint 字型快取；重開 PPT 通常可解 |
 | 偵測到的 pairs 不對 | 手動調整 `paired_figs` 再執行 generate_groupings |
 | Conclusion 點選錯 | 讀 PDF Conclusion 段落重新選 3 點，重跑 Phase 2f |

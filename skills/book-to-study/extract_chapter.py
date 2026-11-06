@@ -38,12 +38,18 @@ import re
 import json
 from pathlib import Path
 
-import fitz  # PyMuPDF
+try:
+    import pymupdf as fitz  # 新版 PyMuPDF 的正式名稱
+except ImportError:
+    import fitz  # PyMuPDF 舊版
 
 
 def clean_toc_title(t):
-    # 書 toc 標題含 \xa0 與私用區雜訊字元（2026-07-07 對本書實測）；標題為英文，僅保留可印 ASCII
-    t = ''.join(ch if 0x20 <= ord(ch) <= 0x7E else ' ' for ch in t)
+    # 書 toc 標題含 \xa0 與私用區雜訊字元（2026-07-07 對本書實測）。
+    # 原本只保留可印 ASCII，會把中文書的標題整個清空（2026-10-05 修）：
+    # 改成只去掉控制字元與私用區（U+E000–U+F8FF），其他字（含中日韓文字）保留。
+    t = t.replace('\xa0', ' ')
+    t = ''.join(' ' if (ord(ch) < 0x20 or 0xE000 <= ord(ch) <= 0xF8FF) else ch for ch in t)
     return re.sub(r'\s+', ' ', t).strip()
 
 

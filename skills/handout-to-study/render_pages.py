@@ -13,9 +13,12 @@ import os
 import sys
 
 try:
-    import fitz  # PyMuPDF
+    import pymupdf as fitz  # 新版 PyMuPDF 的正式名稱
 except ImportError:
-    print('[FAIL] import fitz -> pip install pymupdf')
+    try:
+        import fitz  # PyMuPDF 舊版
+    except ImportError:
+        print('[FAIL] import pymupdf -> pip install pymupdf')
     sys.exit(1)
 
 

@@ -6,7 +6,7 @@ description: 將原文書「單一章節」PDF 轉為三份 Markdown 精讀套�
 # Book to Study Skill（原文書章節 → 精讀筆記＋中文翻譯＋理解複習）
 
 > **v1.0（2026-07-07）**：由《System Level ESD Protection》Ch1 黃金樣本逆向工程而成（設計檔 `<REPO_ROOT>\docs\specs\book-to-study-design.md`）。
-> **Ch2 首跑＝驗證輪**：使用者可能先精讀完 Ch1 後提出格式修訂；執行前使用者若有新指示，以使用者指示為準，並照 `~\.claude\rules\maintenance.md` A/B 分級把修訂寫回本檔（改前備份）。可調旋鈕與預期修訂區見檔尾。
+> **Ch2 首跑＝驗證輪**：使用者可能先精讀完 Ch1 後提出格式修訂；執行前使用者若有新指示，以使用者指示為準。可調旋鈕與預期修訂區見檔尾。
 > 建議由 **opus** 執行（49 頁級長文）；sonnet 執行時必須嚴格照本檔模板逐字做、不得自行簡化流程。
 
 ## 呼叫方式
@@ -42,7 +42,7 @@ description: 將原文書「單一章節」PDF 轉為三份 Markdown 精讀套�
 | PyMuPDF | `PyMuPDF` | `fitz` | extract_chapter.py（文字/結構/圖） | **硬依賴**：缺 → 裝一次，仍缺 → 中止回報 |
 | matplotlib | `matplotlib` | `matplotlib` | Phase 4 自繪輔助圖 | **軟依賴**：缺 → 跳過自繪走文字降級（失敗路徑表第 5 條），主產出照常 |
 
-preflight 檢查碼（**寫成 .py 落檔執行，勿用 python -c**——傳參層會吃引號/反斜線，見 `~\.claude\rules\environment.md`）：
+preflight 檢查碼（**寫成 .py 落檔執行，勿用 python -c**——傳參層會吃引號/反斜線）：
 
 ```python
 import importlib
@@ -538,10 +538,10 @@ created: <YYYY-MM-DD>
 | 3 | 整本書 PDF 找不到 | Phase 0 步驟 3 兩處 glob 皆空 | **問使用者**：給路徑；答「沒有」→ 降級模式（outline 靠內文 regex、book_chapters 為空、跨章參照省略並在筆記導讀頭註明） |
 | 4 | 圖擷取缺漏 | figures.json 的 `missing` 非空，或視覺抽查發現剪裁錯圖 | **替代路**：對缺的 Fig 所在頁已有 page_P.png 則直接用之；沒有 → 用 .py 對該頁 `get_pixmap(dpi=300)` 補算繪；仍不可用 → 筆記文字帶過＋回報清單 |
 | 5 | matplotlib 缺／CJK 字型失效（豆腐字） | preflight `[MISSING] matplotlib`；或視覺驗證見方框亂碼 | 裝一次重試 → 仍失敗 → **降級**：該 aux 圖以文字版縮排清單寫進筆記對應位置＋回報（aux 圖不擋三份主產出） |
-| 6 | 章節超長／session 吃緊 | 章節 PDF >60 頁；或對話目測 >40 輪 | 停在完成的 Phase／大節邊界 → 更新 `AI\_progress.md`（含「下一步從 sec_N.X 接續」）→ 向使用者提議換新 session 接手（Phase 0 接續偵測天然支援） |
+| 6 | 章節超長／session 吃緊 | 章節 PDF >60 頁；或對話紀錄檔可能接近 10 MB（輪數不當判準） | 停在完成的 Phase／大節邊界 → 更新 `AI\_progress.md`（含「下一步從 sec_N.X 接續」）→ 向使用者提議換新 session 接手（Phase 0 接續偵測天然支援） |
 | 7 | 章號/書簡稱推導失敗 | `CHAPTER_NUM_NOT_FOUND`；或同書前綴掃描為空且書名無法縮短 | **問使用者**：請直接給章號/簡稱（一句話），填參數重跑 |
 
-## 可調旋鈕（經驗參數，調整不算違規；大改照 maintenance.md 分級）
+## 可調旋鈕（經驗參數，調整不算違規）
 
 | 旋鈕 | v1.0 預設 | 說明 |
 |---|---|---|
